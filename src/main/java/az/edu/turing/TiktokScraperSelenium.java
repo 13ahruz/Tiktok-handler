@@ -17,11 +17,13 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class TiktokScraperSelenium {
@@ -86,7 +88,7 @@ public class TiktokScraperSelenium {
 //            System.out.println("Post count: " + postCount);
             System.out.println("Profile URL: " + profileURL);
 
-            downloadTikTokVideo("src/main/resources/video.mp4", driver);
+            downloadTikTokVideo("src/main/resources/", driver);
 
             driver.quit();
         } catch (Exception e) {
@@ -264,14 +266,14 @@ public class TiktokScraperSelenium {
 //        }
 //    }
 
-    public static void downloadTikTokVideo(String destinationFilePath, WebDriver driver) {
+    public static void downloadTikTokVideo(String destinationFilePathForVideo, WebDriver driver) {
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
             WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("video")));
             String videoSource = videoElement.getAttribute("src");
 
             Map<String, String> cookies = driver.manage().getCookies().stream()
-                    .collect(Collectors.toMap(cookie -> cookie.getName(), cookie -> cookie.getValue()));
+                    .collect(Collectors.toMap(cookie -> cookie.getName(), cookie -> cookie.getValue(), (oldValue, newValue) -> newValue)); // Handle duplicate keys
             String cookieHeader = cookies.entrySet().stream()
                     .map(entry -> entry.getKey() + "=" + entry.getValue())
                     .collect(Collectors.joining("; "));
@@ -289,8 +291,9 @@ public class TiktokScraperSelenium {
             HttpEntity entity = response.getEntity();
 
             if (entity != null) {
+                String uniqueFileName = destinationFilePathForVideo + "video_" + UUID.randomUUID() + ".mp4";
                 try (InputStream inputStream = entity.getContent();
-                     FileOutputStream outputStream = new FileOutputStream(new File(destinationFilePath))) {
+                     FileOutputStream outputStream = new FileOutputStream(new File(uniqueFileName))) {
 
                     byte[] buffer = new byte[1024];
                     int bytesRead;
@@ -298,7 +301,7 @@ public class TiktokScraperSelenium {
                         outputStream.write(buffer, 0, bytesRead);
                     }
                 }
-                System.out.println("Video downloaded successfully to " + destinationFilePath);
+                System.out.println("Video downloaded successfully to " + uniqueFileName);
             }
 
             EntityUtils.consume(entity);
