@@ -15,9 +15,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -251,6 +249,7 @@ public class TiktokScraperSelenium {
                     }
                 }
                 System.out.println("Video downloaded successfully to " + uniqueFileName);
+                convertMp4ToMp3("src/main/resources/video_14aa1c3b-ec98-433a-a241-f671c10259ea.mp4", "src/main/resources/sounds/music.mp3", "00:00:00");
             }
 
             EntityUtils.consume(entity);
@@ -285,4 +284,23 @@ public class TiktokScraperSelenium {
             return -1;
         }
     }
+
+    public static void convertMp4ToMp3(String inputFilePath, String outputFilePath, String startTime)
+            throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "ffmpeg-master-latest-win64-gpl-shared/bin/ffmpeg.exe", "-i", inputFilePath, "-vn", "-ss", startTime, "-acodec", "libmp3lame", outputFilePath);
+
+        processBuilder.redirectErrorStream(true);
+
+        Process process = processBuilder.start();
+
+        int exitCode = process.waitFor();
+
+        if (exitCode == 0) {
+            System.out.println("Audio extracted successfully.");
+        } else {
+            System.out.println("Error extracting audio. Exit code: " + exitCode);
+        }
+    }
+
 }
