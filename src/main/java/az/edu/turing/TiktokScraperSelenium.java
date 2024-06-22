@@ -40,8 +40,12 @@ public class TiktokScraperSelenium {
 
             // Extract username
             String username = extractUsername(driver, wait);
+            String videoId = extractVideoId(driver, wait);
 
             System.out.println("Username: " + username);
+            System.out.println("Video ID: " + videoId);
+
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -57,6 +61,20 @@ public class TiktokScraperSelenium {
             return usernameElement.getText();
         } catch (Exception e) {
             System.out.println("Failed to find username element");
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private static String extractVideoId(WebDriver driver, WebDriverWait wait) {
+        try {
+            // Wait and find the element that contains the video ID
+            WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class, 'tiktok-web-player')]")));
+            String id = videoElement.getAttribute("id");
+            System.out.println("Video Element ID: " + id); // Debug statement
+            return id.split("-")[2];
+        } catch (Exception e) {
+            System.out.println("Failed to find video element");
             e.printStackTrace();
             return "";
         }
