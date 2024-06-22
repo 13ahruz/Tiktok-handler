@@ -5,7 +5,9 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import java.util.concurrent.TimeUnit;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import java.time.Duration;
 
 public class TiktokScraperSelenium {
 
@@ -21,39 +23,32 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080"); // Set window size
 
         WebDriver driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         try {
             driver.get(TIKTOK_VIDEO_URL);
 
-            // Extract data
-            String id = extractVideoId(driver);
-            String date = extractDate(driver);
-            String sharer = extractSharer(driver);
+            // Extract username
+            String username = extractUsername(driver, wait);
 
-            System.out.println("ID: " + id);
-            System.out.println("Date: " + date);
-            System.out.println("Sharer: " + sharer);
+            System.out.println("Username: " + username);
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             driver.quit();
         }
     }
 
-    private static String extractVideoId(WebDriver driver) {
-        // Example of extracting video ID
-        WebElement videoIdElement = driver.findElement(By.cssSelector("meta[property='og:video']"));
-        return videoIdElement != null ? videoIdElement.getAttribute("content") : "N/A";
-    }
-
-    private static String extractDate(WebDriver driver) {
-        // Example of extracting upload date
-        WebElement dateElement = driver.findElement(By.cssSelector("meta[property='og:video:release_date']"));
-        return dateElement != null ? dateElement.getAttribute("content") : "N/A";
-    }
-
-    private static String extractSharer(WebDriver driver) {
-        // Example of extracting sharer
-        WebElement sharerElement = driver.findElement(By.cssSelector("meta[property='og:title']"));
-        return sharerElement != null ? sharerElement.getAttribute("content") : "N/A";
+    private static String extractUsername(WebDriver driver, WebDriverWait wait) {
+        try {
+            // Wait and find the element that contains the username
+            WebElement usernameElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@data-e2e='browse-username']")));
+            System.out.println("Username Element Found: " + usernameElement.getText()); // Debug statement
+            return usernameElement.getText();
+        } catch (Exception e) {
+            System.out.println("Failed to find username element");
+            e.printStackTrace();
+            return "";
+        }
     }
 }
