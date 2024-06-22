@@ -35,7 +35,7 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10000));
 
         try {
             driver.get(TIKTOK_VIDEO_URL);
@@ -88,11 +88,12 @@ public class TiktokScraperSelenium {
     private static List<String> extractUsernames(WebDriverWait wait) {
         List<String> usernames = new ArrayList<>();
         try {
-            List<WebElement> usernameElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//a[contains(@class, 'StyledUserLinkName')]")));
+            List<WebElement> usernameElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//a[contains(@class, 'css-fx1avz-StyledLink-StyledUserLinkName er1vbsz0')]")));
 
             for (WebElement usernameElement : usernameElements) {
-                usernames.add(usernameElement.getText());
-                System.out.println("Found username: " + usernameElement.getText());
+                String username = usernameElement.getAttribute("href").split("@")[1];
+                usernames.add(username);
+                System.out.println("Found username: " + username);
             }
         } catch (Exception e) {
             System.out.println("Failed to find username elements");
@@ -103,7 +104,7 @@ public class TiktokScraperSelenium {
 
     private static List<String> generateTiktokProfileLinks(List<String> usernames) {
         List<String> profileLinks = new ArrayList<>();
-        String baseUrl = "https://tiktok.com/";
+        String baseUrl = "https://tiktok.com/@";
 
         for (String username : usernames) {
             String profileLink = baseUrl + username;
@@ -112,7 +113,6 @@ public class TiktokScraperSelenium {
 
         return profileLinks;
     }
-
 
     private static int extractShareCount(WebDriverWait wait) {
         try {
