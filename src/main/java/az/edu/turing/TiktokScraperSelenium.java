@@ -1,12 +1,13 @@
 package az.edu.turing;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.time.Duration;
 
 public class TiktokScraperSelenium {
@@ -22,7 +23,10 @@ public class TiktokScraperSelenium {
             driverType = "drivers/mac/chromedriver";
         } else if (OS.contains("linux")) {
             driverType = "drivers/linux/chromedriver";
-        }else System.out.println("Operating system not recognized: " + OS);
+        } else {
+            System.out.println("Operating system not recognized: " + OS);
+            return;
+        }
 
         // Set the path to the chromedriver executable
         System.setProperty("webdriver.chrome.driver", driverType);
@@ -41,10 +45,11 @@ public class TiktokScraperSelenium {
             // Extract username
             String username = extractUsername(driver, wait);
             String videoId = extractVideoId(driver, wait);
+            int viewCount = extractViewCount(driver, wait); // New method call
 
             System.out.println("Username: " + username);
             System.out.println("Video ID: " + videoId);
-
+            System.out.println("Share Count: " + viewCount); // Print view count
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,6 +82,20 @@ public class TiktokScraperSelenium {
             System.out.println("Failed to find video element");
             e.printStackTrace();
             return "";
+        }
+    }
+
+    private static int extractViewCount(WebDriver driver, WebDriverWait wait) {
+        try {
+            // Wait and find the element that contains the view count
+            WebElement viewCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='share-count']")));
+            String viewCountText = viewCountElement.getText().trim();
+            // Extract the numeric value from the string
+            return Integer.parseInt(viewCountText);
+        } catch (Exception e) {
+            System.out.println("Failed to find view count element");
+            e.printStackTrace();
+            return -1; // Return -1 or handle error as needed
         }
     }
 }
