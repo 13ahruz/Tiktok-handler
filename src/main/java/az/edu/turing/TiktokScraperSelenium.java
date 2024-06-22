@@ -11,11 +11,21 @@ import java.time.Duration;
 
 public class TiktokScraperSelenium {
 
+    private static String driverType;
+    private static String OS = System.getProperty("os.name").toLowerCase();
     private static final String TIKTOK_VIDEO_URL = "https://www.tiktok.com/@aq7in/video/7349961511852428545?is_from_webapp=1&sender_device=pc"; // Replace with actual URL
 
     public static void main(String[] args) {
+        if (OS.contains("win")) {
+            driverType = "drivers/chromedriver-win64/chromedriver.exe";
+        } else if (OS.contains("mac")) {
+            driverType = "drivers/mac/chromedriver";
+        } else if (OS.contains("linux")) {
+            driverType = "drivers/linux/chromedriver";
+        }else System.out.println("Operating system not recognized: " + OS);
+
         // Set the path to the chromedriver executable
-        System.setProperty("webdriver.chrome.driver", "C:\\Users\\ROMedia\\Downloads\\chromedriver-win64\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", driverType);
 
         // Configure Chrome options to run in headless mode
         ChromeOptions options = new ChromeOptions();
