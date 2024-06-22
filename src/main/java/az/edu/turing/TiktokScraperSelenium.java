@@ -56,14 +56,13 @@ public class TiktokScraperSelenium {
             String uploadDate = extractUploadDate(wait);
             int commentCount = extractCommentCount(wait);
             int saveCount = extractVideoSaveCount(wait);
-          //  int followerCount = extractFollowerCount(wait);
-           // int followingCount = extractFollowingCount(wait);
-           // int postCount = extractPostCount(wait);
+            String profileUrl = extractProfileLink(wait);
+            int followerCount = extractFollowersCount(profileUrl, driver, wait);
+            int followingCount = extractFollowingCount(profileUrl, driver, wait);
             String profileURL = extractProfileLink(wait);
 
-//            user1.setFollowerCount(followerCount);
-//            user1.setFollowingCount(followingCount);
-//            user1.setPostCount(postCount);
+            user1.setFollowerCount(followerCount);
+            user1.setFollowingCount(followingCount);
             user1.setProfileUrl(profileURL);
 
             video1.setCommentsCount(commentCount);
@@ -83,9 +82,8 @@ public class TiktokScraperSelenium {
             System.out.println("Upload date: " + uploadDate);
             System.out.println("Comment count: " + commentCount);
             System.out.println("Save count: " + saveCount);
-//            System.out.println("Follower Count: " + followerCount);
-//            System.out.println("Following Count: " + followingCount);
-//            System.out.println("Post count: " + postCount);
+            System.out.println("Follower Count: " + followerCount);
+            System.out.println("Following Count: " + followingCount);
             System.out.println("Profile URL: " + profileURL);
 
             downloadTikTokVideo("src/main/resources/", driver);
@@ -205,42 +203,6 @@ public class TiktokScraperSelenium {
         }
     }
 
-//    private static int extractFollowerCount(WebDriverWait wait) {
-//        try {
-//            WebElement followerCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@title='Followers']")));
-//            String followerCountText = followerCountElement.getText().trim();
-//            return parseCount(followerCountText);
-//        } catch (Exception e) {
-//            System.out.println("Failed to find follower count element");
-//            e.printStackTrace();
-//            return -1;
-//        }
-//    }
-
-//    private static int extractFollowingCount(WebDriverWait wait) {
-//        try {
-//            WebElement followingCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@title='Following']")));
-//            String followingCountText = followingCountElement.getText().trim();
-//            return parseCount(followingCountText);
-//        } catch (Exception e) {
-//            System.out.println("Failed to find following count element");
-//            e.printStackTrace();
-//            return -1;
-//        }
-//    }
-
-//    private static int extractPostCount(WebDriverWait wait) {
-//        try {
-//            WebElement postCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@title='Likes']")));
-//            String postCountText = postCountElement.getText().trim();
-//            return parseCount(postCountText);
-//        } catch (Exception e) {
-//            System.out.println("Failed to find post count element");
-//            e.printStackTrace();
-//            return -1;
-//        }
-//    }
-
     private static String extractProfileLink(WebDriverWait wait) {
         try {
             WebElement usernameElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[@data-e2e='browse-username']")));
@@ -254,17 +216,6 @@ public class TiktokScraperSelenium {
             return "";
         }
     }
-
-//    private static int parseCount(String countText) {
-//        countText = countText.replaceAll(",", "");
-//        if (countText.endsWith("K")) {
-//            return (int) (Double.parseDouble(countText.replace("K", "")) * 1000);
-//        } else if (countText.endsWith("M")) {
-//            return (int) (Double.parseDouble(countText.replace("M", "")) * 1000000);
-//        } else {
-//            return Integer.parseInt(countText);
-//        }
-//    }
 
     public static void downloadTikTokVideo(String destinationFilePathForVideo, WebDriver driver) {
         try {
@@ -308,6 +259,32 @@ public class TiktokScraperSelenium {
             httpClient.close();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private static int extractFollowersCount(String profileURL, WebDriver driver, WebDriverWait wait) {
+        try {
+            driver.get(profileURL);
+            WebElement followersElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='followers-count']")));
+            String followersText = followersElement.getText().trim();
+            return Integer.parseInt(convertToNumber(followersText));
+        } catch (Exception e) {
+            System.out.println("Failed to extract followers count");
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    private static int extractFollowingCount(String profileURL, WebDriver driver, WebDriverWait wait) {
+        try {
+            driver.get(profileURL);
+            WebElement followingElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='following-count']")));
+            String followingText = followingElement.getText().trim();
+            return Integer.parseInt(convertToNumber(followingText));
+        } catch (Exception e) {
+            System.out.println("Failed to extract following count");
+            e.printStackTrace();
+            return -1;
         }
     }
 }
