@@ -54,6 +54,8 @@ public class TiktokScraperSelenium {
             int commentCount = extractCommentCount(wait);
             int saveCount = extractVideoSaveCount(wait);
             String profileURL = extractProfileLink(wait);
+            int followerCount = extractFollowersCount(profileURL, driver, wait);
+            int followingCount = extractFollowingCount(profileURL, driver, wait);
 
             user1.setProfileUrl(profileURL);
 
@@ -74,6 +76,8 @@ public class TiktokScraperSelenium {
             System.out.println("Comment count: " + commentCount);
             System.out.println("Save count: " + saveCount);
             System.out.println("Profile URL: " + profileURL);
+            System.out.println("Follower count: " + followerCount);
+            System.out.println("Following count: " + followingCount);
 
             downloadTikTokVideo(TIKTOK_VIDEO_URL, "src/main/resources/", "src/main/resources/sounds/", driver);
 
@@ -251,31 +255,30 @@ public class TiktokScraperSelenium {
         }
     }
 
-//    public static void convertMP4ToMP3(String mp4FilePath, String destinationDirectory) {
-//        String uniqueFileName = "audio_" + UUID.randomUUID() + ".mp3";
-//        String mp3FilePath = destinationDirectory + File.separator + uniqueFileName;
-//
-//        String ffmpegPath = "C:\\path\\to\\ffmpeg\\bin\\ffmpeg.exe"; // Replace with the actual path to ffmpeg
-//
-//        ProcessBuilder processBuilder = new ProcessBuilder(
-//                ffmpegPath, "-i", mp4FilePath, "-q:a", "0", "-map", "a", mp3FilePath
-//        );
-//
-//        try {
-//            Process process = processBuilder.start();
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                System.out.println(line);
-//            }
-//            int exitCode = process.waitFor();
-//            if (exitCode == 0) {
-//                System.out.println("MP4 to MP3 conversion completed successfully. File saved as " + mp3FilePath);
-//            } else {
-//                System.out.println("MP4 to MP3 conversion failed with exit code: " + exitCode);
-//            }
-//        } catch (IOException | InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    private static int extractFollowersCount(String profileURL, WebDriver driver, WebDriverWait wait) {
+        try {
+            driver.get(profileURL);
+            WebElement followersElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='followers-count']")));
+            String followersText = followersElement.getText().trim();
+            return Integer.parseInt(convertToNumber(followersText));
+        } catch (Exception e) {
+            System.out.println("Failed to extract followers count");
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    private static int extractFollowingCount(String profileURL, WebDriver driver, WebDriverWait wait) {
+        try {
+            driver.get(profileURL);
+            WebElement followingElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='following-count']")));
+            String followingText = followingElement.getText().trim();
+            return Integer.parseInt(convertToNumber(followingText));
+        } catch (Exception e) {
+            System.out.println("Failed to extract following count");
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
 }
