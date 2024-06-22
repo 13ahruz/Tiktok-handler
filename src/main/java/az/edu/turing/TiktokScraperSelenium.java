@@ -2,6 +2,7 @@ package az.edu.turing;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import java.util.concurrent.TimeUnit;
@@ -12,9 +13,14 @@ public class TiktokScraperSelenium {
 
     public static void main(String[] args) {
         // Set the path to the chromedriver executable
-        System.setProperty("webdriver.chrome.driver", "C:\\Users\\ROMedia\\Downloads\\chromedriver-win64\\chromedriver.exe\\");
+        System.setProperty("webdriver.chrome.driver", "C:\\Users\\ROMedia\\Downloads\\chromedriver-win64\\chromedriver.exe");
 
-        WebDriver driver = new ChromeDriver();
+        // Configure Chrome options to run in headless mode
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless"); // Run Chrome in headless mode
+        options.addArguments("window-size=1920,1080"); // Set window size
+
+        WebDriver driver = new ChromeDriver(options);
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
         try {
