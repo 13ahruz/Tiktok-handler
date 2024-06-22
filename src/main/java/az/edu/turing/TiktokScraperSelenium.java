@@ -1,12 +1,13 @@
 package az.edu.turing;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ public class TiktokScraperSelenium {
             driverType = "drivers/linux/chromedriver";
         } else {
             System.out.println("Operating system not recognized: " + OS);
+            return;
         }
 
         System.setProperty("webdriver.chrome.driver", driverType);
@@ -35,7 +37,7 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));  // Reduced wait time
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
 
         try {
             driver.get(TIKTOK_VIDEO_URL);
@@ -43,10 +45,12 @@ public class TiktokScraperSelenium {
             String username = extractUsername(wait);
             String videoId = extractVideoId(wait);
             int shareCount = extractShareCount(wait);
+            int savedVideoCount = extractSavedVideoCount(wait);
 
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
             System.out.println("Share count: " + shareCount);
+            System.out.println("Saved video count: " + savedVideoCount);
 
             List<String> usernames = extractUsernames(wait);
             List<String> profileLinks = generateTiktokProfileLinks(usernames);
@@ -122,6 +126,18 @@ public class TiktokScraperSelenium {
             System.out.println("Failed to find view count element");
             e.printStackTrace();
             return -1;
+        }
+    }
+
+    private static int extractSavedVideoCount(WebDriverWait wait) {
+        try {
+            WebElement savedVideoCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='undefined-count']")));
+            String savedVideoCountText = savedVideoCountElement.getText().trim();
+            return Integer.parseInt(savedVideoCountText);
+        } catch (Exception e) {
+            System.out.println("Failed to find saved video count element");
+            e.printStackTrace();
+            return -1; // Return -1 or appropriate default value if count cannot be extracted
         }
     }
 }
