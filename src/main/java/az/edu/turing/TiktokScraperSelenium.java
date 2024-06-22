@@ -35,7 +35,7 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10000));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));  // Reduced wait time
 
         try {
             driver.get(TIKTOK_VIDEO_URL);
@@ -93,7 +93,6 @@ public class TiktokScraperSelenium {
             for (WebElement usernameElement : usernameElements) {
                 String username = usernameElement.getAttribute("href").split("@")[1];
                 usernames.add(username);
-                System.out.println("Found username: " + username);
             }
         } catch (Exception e) {
             System.out.println("Failed to find username elements");
