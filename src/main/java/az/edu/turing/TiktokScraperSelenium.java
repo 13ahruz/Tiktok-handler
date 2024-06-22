@@ -7,6 +7,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import javax.xml.stream.events.Comment;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +37,7 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));  // Reduced wait time
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));  // Reduced wait time
 
         try {
             driver.get(TIKTOK_VIDEO_URL);
@@ -43,19 +45,23 @@ public class TiktokScraperSelenium {
             String username = extractUsername(wait);
             String videoId = extractVideoId(wait);
             int shareCount = extractShareCount(wait);
-            int savedCount =extractSavedVideoCount(wait);
+            int commentCount = extractCommentCount(wait);
+            int videoSaveCount = extractVideoSaveCount(wait);
 
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
             System.out.println("Share count: " + shareCount);
-            System.out.println("Saved video count: " + savedCount);
+            System.out.println("Comment count: " + commentCount);
+            System.out.println("Video save count: " + videoSaveCount);
+
 
             List<String> usernames = extractUsernames(wait);
             List<String> profileLinks = generateTiktokProfileLinks(usernames);
-
-            for (String profileLink : profileLinks) {
-                System.out.println("Profile Link: " + profileLink);
-            }
+//
+//            for (String profileLink : profileLinks) {
+//                System.out.println("Profile Link: " + profileLink);
+//            }
+            driver.quit();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -127,7 +133,36 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static int extractSavedVideoCount(WebDriverWait wait) {
+    private static List<String> extractVideoUrls(WebDriverWait wait) {
+        List<String> videoUrls = new ArrayList<>();
+        try {
+            List<WebElement> videoElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("a[href*='/video/']")));
+
+            for (WebElement videoElement : videoElements) {
+                String videoUrl = videoElement.getAttribute("href");
+                videoUrls.add(videoUrl);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Failed to extract video URLs");
+            e.printStackTrace();
+        }
+        return videoUrls;
+    }
+
+    private static int extractCommentCount(WebDriverWait wait) {
+        try {
+            WebElement commentCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='comment-count']")));
+            String commentCountText = commentCountElement.getText().trim();
+            return Integer.parseInt(commentCountText);
+        } catch (Exception e) {
+            System.out.println("Failed to find comment count element");
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    private static int extractVideoSaveCount(WebDriverWait wait) {
         try {
             WebElement savedVideoCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='undefined-count']")));
             String savedVideoCountText = savedVideoCountElement.getText().trim();
@@ -135,7 +170,7 @@ public class TiktokScraperSelenium {
         } catch (Exception e) {
             System.out.println("Failed to find saved video count element");
             e.printStackTrace();
-            return -1; // Return -1 or appropriate default value if count cannot be extracted
+            return -1;
         }
     }
 }
