@@ -28,13 +28,11 @@ public class TiktokScraperSelenium {
             System.out.println("Operating system not recognized: " + OS);
         }
 
-        // Set the path to the chromedriver executable
         System.setProperty("webdriver.chrome.driver", driverType);
 
-        // Configure Chrome options to run in headless mode
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless"); // Run Chrome in headless mode
-        options.addArguments("window-size=1920,1080"); // Set window size
+        options.addArguments("--headless");
+        options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
@@ -42,15 +40,15 @@ public class TiktokScraperSelenium {
         try {
             driver.get(TIKTOK_VIDEO_URL);
 
-            String username = extractUsername(driver, wait);
-            String videoId = extractVideoId(driver, wait);
-            int shareCount = extractShareCount(driver, wait);
+            String username = extractUsername(wait);
+            String videoId = extractVideoId(wait);
+            int shareCount = extractShareCount(wait);
 
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
             System.out.println("Share count: " + shareCount);
 
-            List<String> usernames = extractUsernames(driver, wait);
+            List<String> usernames = extractUsernames(wait);
             List<String> profileLinks = generateTiktokProfileLinks(usernames);
 
             for (String profileLink : profileLinks) {
@@ -64,9 +62,8 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static String extractUsername(WebDriver driver, WebDriverWait wait) {
+    private static String extractUsername(WebDriverWait wait) {
         try {
-            // Wait and find the element that contains the username
             WebElement usernameElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@data-e2e='browse-username']")));
             return usernameElement.getText();
         } catch (Exception e) {
@@ -76,9 +73,8 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static String extractVideoId(WebDriver driver, WebDriverWait wait) {
+    private static String extractVideoId(WebDriverWait wait) {
         try {
-            // Wait and find the element that contains the video ID
             WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class, 'tiktok-web-player')]")));
             String id = videoElement.getAttribute("id");
             return id.split("-")[2];
@@ -89,15 +85,14 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static List<String> extractUsernames(WebDriver driver, WebDriverWait wait) {
+    private static List<String> extractUsernames(WebDriverWait wait) {
         List<String> usernames = new ArrayList<>();
         try {
-            // Wait and find the elements that contain the usernames
             List<WebElement> usernameElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//a[contains(@class, 'StyledUserLinkName')]")));
 
             for (WebElement usernameElement : usernameElements) {
                 usernames.add(usernameElement.getText());
-                System.out.println("Found username: " + usernameElement.getText()); // Debug statement
+                System.out.println("Found username: " + usernameElement.getText());
             }
         } catch (Exception e) {
             System.out.println("Failed to find username elements");
@@ -118,13 +113,10 @@ public class TiktokScraperSelenium {
         return profileLinks;
     }
 
-
-    private static int extractShareCount(WebDriver driver, WebDriverWait wait) {
+    private static int extractShareCount(WebDriverWait wait) {
         try {
-            // Wait and find the element that contains the view count
             WebElement viewCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='share-count']")));
             String viewCountText = viewCountElement.getText().trim();
-            // Extract the numeric value from the string
             return Integer.parseInt(viewCountText);
         } catch (Exception e) {
             System.out.println("Failed to find view count element");
