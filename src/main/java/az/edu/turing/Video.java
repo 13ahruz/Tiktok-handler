@@ -1,6 +1,7 @@
 package az.edu.turing;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class Video {
@@ -10,14 +11,18 @@ public class Video {
     private long likeCount;
     private long commentsCount;
     private long saveCount;
+    private byte[] sound;
+    private String profileLink;
 
-    public Video(Long videoId, LocalDate shareDate, long shareCount, long likeCount, long commentsCount, long saveCount) {
+    public Video(Long videoId, LocalDate shareDate, long shareCount, long likeCount, long commentsCount, long saveCount, byte[] sound, String profileLink) {
         this.videoId = videoId;
         this.shareDate = shareDate;
         this.shareCount = shareCount;
         this.likeCount = likeCount;
         this.commentsCount = commentsCount;
         this.saveCount = saveCount;
+        this.sound = sound;
+        this.profileLink = profileLink;
     }
 
     public Long getVideoId() {
@@ -61,7 +66,6 @@ public class Video {
     }
 
 
-
     public long getSaveCount() {
         return saveCount;
     }
@@ -70,17 +74,33 @@ public class Video {
         this.saveCount = saveCount;
     }
 
+    public byte[] getSound() {
+        return sound;
+    }
+
+    public void setSound(byte[] sound) {
+        this.sound = sound;
+    }
+
+    public String getProfileLink() {
+        return profileLink;
+    }
+
+    public void setProfileLink(String profileLink) {
+        this.profileLink = profileLink;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Video video = (Video) o;
-        return shareCount == video.shareCount && likeCount == video.likeCount && commentsCount == video.commentsCount  && saveCount == video.saveCount && Objects.equals(videoId, video.videoId) && Objects.equals(shareDate, video.shareDate);
+        return shareCount == video.shareCount && likeCount == video.likeCount && commentsCount == video.commentsCount && saveCount == video.saveCount && Objects.equals(videoId, video.videoId) && Objects.equals(shareDate, video.shareDate) && Objects.deepEquals(sound, video.sound) && Objects.equals(profileLink, video.profileLink);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(videoId, shareDate, shareCount, likeCount, commentsCount, saveCount);
+        return Objects.hash(videoId, shareDate, shareCount, likeCount, commentsCount, saveCount, Arrays.hashCode(sound), profileLink);
     }
 
     @Override
@@ -89,10 +109,11 @@ public class Video {
                 "videoId=" + videoId +
                 ", shareDate=" + shareDate +
                 ", shareCount=" + shareCount +
-                ", likesCount=" + likeCount +
+                ", likeCount=" + likeCount +
                 ", commentsCount=" + commentsCount +
-                ", savedVideoCount=" + saveCount +
+                ", saveCount=" + saveCount +
+                ", sound=" + Arrays.toString(sound) +
+                ", profileLink='" + profileLink + '\'' +
                 '}';
     }
-
 }
