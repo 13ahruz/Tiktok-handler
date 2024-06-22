@@ -1,13 +1,12 @@
 package az.edu.turing;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,6 @@ public class TiktokScraperSelenium {
             driverType = "drivers/linux/chromedriver";
         } else {
             System.out.println("Operating system not recognized: " + OS);
-            return;
         }
 
         System.setProperty("webdriver.chrome.driver", driverType);
@@ -37,7 +35,7 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));  // Reduced wait time
 
         try {
             driver.get(TIKTOK_VIDEO_URL);
@@ -45,12 +43,12 @@ public class TiktokScraperSelenium {
             String username = extractUsername(wait);
             String videoId = extractVideoId(wait);
             int shareCount = extractShareCount(wait);
-            int savedVideoCount = extractSavedVideoCount(wait);
+            int savedCount =extractSavedVideoCount(wait);
 
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
             System.out.println("Share count: " + shareCount);
-            System.out.println("Saved video count: " + savedVideoCount);
+            System.out.println("Saved video count: " + savedCount);
 
             List<String> usernames = extractUsernames(wait);
             List<String> profileLinks = generateTiktokProfileLinks(usernames);
