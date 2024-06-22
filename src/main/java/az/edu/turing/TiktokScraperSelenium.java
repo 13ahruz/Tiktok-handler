@@ -47,12 +47,14 @@ public class TiktokScraperSelenium {
             int shareCount = extractShareCount(wait);
             int commentCount = extractCommentCount(wait);
             int videoSaveCount = extractVideoSaveCount(wait);
+            String likevideoCOunt=extractLikeCount(wait);
 
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
             System.out.println("Share count: " + shareCount);
             System.out.println("Comment count: " + commentCount);
             System.out.println("Video save count: " + videoSaveCount);
+            System.out.println("Video like count: " + likevideoCOunt);
 
 
             List<String> usernames = extractUsernames(wait);
@@ -171,6 +173,27 @@ public class TiktokScraperSelenium {
             System.out.println("Failed to find saved video count element");
             e.printStackTrace();
             return -1;
+        }
+    }
+
+    private static String extractLikeCount(WebDriverWait wait) {
+        try {
+            WebElement likeCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='like-count']")));
+            String likeCountText = likeCountElement.getText().trim();
+            return convertToNumber(likeCountText);
+        } catch (Exception e) {
+            System.out.println("Failed to find like count element");
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private static String convertToNumber(String likeCountText) {
+        if (likeCountText.contains("K")) {
+            double number = Double.parseDouble(likeCountText.replace("K", "").replace(",", "").trim()) * 1000;
+            return String.valueOf((int) number);
+        } else {
+            return likeCountText.replace(",", "");
         }
     }
 }
