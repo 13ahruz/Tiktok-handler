@@ -1,14 +1,15 @@
 package az.edu.turing;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TiktokScraperSelenium {
 
@@ -25,31 +26,34 @@ public class TiktokScraperSelenium {
             driverType = "drivers/linux/chromedriver";
         } else {
             System.out.println("Operating system not recognized: " + OS);
-            return;
         }
 
-        // Set the path to the chromedriver executable
         System.setProperty("webdriver.chrome.driver", driverType);
 
-        // Configure Chrome options to run in headless mode
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless"); // Run Chrome in headless mode
-        options.addArguments("window-size=1920,1080"); // Set window size
+        options.addArguments("--headless");
+        options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
 
         try {
             driver.get(TIKTOK_VIDEO_URL);
 
-            // Extract username
-            String username = extractUsername(driver, wait);
-            String videoId = extractVideoId(driver, wait);
-            int viewCount = extractViewCount(driver, wait); // New method call
+            String username = extractUsername(wait);
+            String videoId = extractVideoId(wait);
+            int shareCount = extractShareCount(wait);
 
-            System.out.println("Username: " + username);
+            System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
-            System.out.println("Share Count: " + viewCount); // Print view count
+            System.out.println("Share count: " + shareCount);
+
+            List<String> usernames = extractUsernames(wait);
+            List<String> profileLinks = generateTiktokProfileLinks(usernames);
+
+            for (String profileLink : profileLinks) {
+                System.out.println("Profile Link: " + profileLink);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,11 +62,9 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static String extractUsername(WebDriver driver, WebDriverWait wait) {
+    private static String extractUsername(WebDriverWait wait) {
         try {
-            // Wait and find the element that contains the username
             WebElement usernameElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@data-e2e='browse-username']")));
-            System.out.println("Username Element Found: " + usernameElement.getText()); // Debug statement
             return usernameElement.getText();
         } catch (Exception e) {
             System.out.println("Failed to find username element");
@@ -71,12 +73,10 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static String extractVideoId(WebDriver driver, WebDriverWait wait) {
+    private static String extractVideoId(WebDriverWait wait) {
         try {
-            // Wait and find the element that contains the video ID
             WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class, 'tiktok-web-player')]")));
             String id = videoElement.getAttribute("id");
-            System.out.println("Video Element ID: " + id); // Debug statement
             return id.split("-")[2];
         } catch (Exception e) {
             System.out.println("Failed to find video element");
@@ -85,17 +85,44 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static int extractViewCount(WebDriver driver, WebDriverWait wait) {
+    private static List<String> extractUsernames(WebDriverWait wait) {
+        List<String> usernames = new ArrayList<>();
         try {
-            // Wait and find the element that contains the view count
+            List<WebElement> usernameElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//a[contains(@class, 'StyledUserLinkName')]")));
+
+            for (WebElement usernameElement : usernameElements) {
+                usernames.add(usernameElement.getText());
+                System.out.println("Found username: " + usernameElement.getText());
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to find username elements");
+            e.printStackTrace();
+        }
+        return usernames;
+    }
+
+    private static List<String> generateTiktokProfileLinks(List<String> usernames) {
+        List<String> profileLinks = new ArrayList<>();
+        String baseUrl = "https://tiktok.com/";
+
+        for (String username : usernames) {
+            String profileLink = baseUrl + username;
+            profileLinks.add(profileLink);
+        }
+
+        return profileLinks;
+    }
+
+
+    private static int extractShareCount(WebDriverWait wait) {
+        try {
             WebElement viewCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='share-count']")));
             String viewCountText = viewCountElement.getText().trim();
-            // Extract the numeric value from the string
             return Integer.parseInt(viewCountText);
         } catch (Exception e) {
             System.out.println("Failed to find view count element");
             e.printStackTrace();
-            return -1; // Return -1 or handle error as needed
+            return -1;
         }
     }
 }
