@@ -30,6 +30,7 @@ public class TiktokScraperSelenium {
     private static final String TIKTOK_VIDEO_URL = "https://www.tiktok.com/@df_art_and_craft/video/7221895017604910341?is_from_webapp=1&sender_device=pc";
     private static List<User> users = new ArrayList<>();
     private static List<Video> videos = new ArrayList<>();
+    private static UUID UniqueId;
 
     public static void main(String[] args) {
         setDriverPath();
@@ -238,7 +239,8 @@ public class TiktokScraperSelenium {
             HttpEntity entity = response.getEntity();
 
             if (entity != null) {
-                String uniqueFileName = destinationFilePathForVideo + "video_" + UUID.randomUUID() + ".mp4";
+                UniqueId = UUID.randomUUID();
+                String uniqueFileName = destinationFilePathForVideo + "video_" + UniqueId + ".mp4";
                 try (InputStream inputStream = entity.getContent();
                      FileOutputStream outputStream = new FileOutputStream(new File(uniqueFileName))) {
 
@@ -249,7 +251,7 @@ public class TiktokScraperSelenium {
                     }
                 }
                 System.out.println("Video downloaded successfully to " + uniqueFileName);
-                convertMp4ToMp3("src/main/resources/video_14aa1c3b-ec98-433a-a241-f671c10259ea.mp4", "src/main/resources/sounds/music.mp3", "00:00:00");
+                convertMp4ToMp3(uniqueFileName, "src/main/resources/sounds/sound_" + UniqueId + ".mp3", "00:00:00");
             }
 
             EntityUtils.consume(entity);
