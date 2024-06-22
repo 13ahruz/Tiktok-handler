@@ -17,10 +17,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.*;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TiktokScraperSelenium {
@@ -56,6 +53,10 @@ public class TiktokScraperSelenium {
             String profileURL = extractProfileLink(wait);
 
             user1.setProfileUrl(profileURL);
+            int followersCount = extractFollowersCount(profileURL, driver, wait);
+            int followingCount = extractFollowingCount(profileURL, driver, wait);
+            user1.setFollowerCount(followersCount);
+            user1.setFollowingCount(followingCount);
 
             video1.setCommentsCount(commentCount);
             video1.setLikeCount(likeCount);
@@ -74,6 +75,8 @@ public class TiktokScraperSelenium {
             System.out.println("Comment count: " + commentCount);
             System.out.println("Save count: " + saveCount);
             System.out.println("Profile URL: " + profileURL);
+            System.out.println("Followers count: " + followersCount);
+            System.out.println("Following count: " + followingCount);
 
             downloadTikTokVideo(TIKTOK_VIDEO_URL, "src/main/resources/", "src/main/resources/sounds/", driver);
 
@@ -171,12 +174,15 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static String convertToNumber(String likeCountText) {
-        if (likeCountText.contains("K")) {
-            double number = Double.parseDouble(likeCountText.replace("K", "").replace(",", "").trim()) * 1000;
+    private static String convertToNumber(String text) {
+        if (text.contains("K")) {
+            double number = Double.parseDouble(text.replace("K", "").trim()) * 1000;
+            return String.valueOf((int) number);
+        } else if (text.contains("M")) {
+            double number = Double.parseDouble(text.replace("M", "").trim()) * 1000000;
             return String.valueOf((int) number);
         } else {
-            return likeCountText.replace(",", "");
+            return text.replace(",", "");
         }
     }
 
@@ -195,9 +201,7 @@ public class TiktokScraperSelenium {
         try {
             WebElement usernameElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[@data-e2e='browse-username']")));
             String username = usernameElement.getText();
-            String profileLink = "https://www.tiktok.com/@" + username;
-
-            return profileLink;
+            return "https://www.tiktok.com/@" + username;
         } catch (Exception e) {
             System.out.println("Failed to extract profile link");
             e.printStackTrace();
@@ -205,77 +209,70 @@ public class TiktokScraperSelenium {
         }
     }
 
+    private static int extractFollowersCount(String profileURL, WebDriver driver, WebDriverWait wait) {
+        try {
+            driver.get(profileURL);
+            WebElement followersElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='followers-count']")));
+            String followersText = followersElement.getText().trim();
+            return Integer.parseInt(convertToNumber(followersText));
+        } catch (Exception e) {
+            System.out.println("Failed to extract followers count");
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    private static int extractFollowingCount(String profileURL, WebDriver driver, WebDriverWait wait) {
+        try {
+            driver.get(profileURL);
+            WebElement followingElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='following-count']")));
+            String followingText = followingElement.getText().trim();
+            return Integer.parseInt(convertToNumber(followingText));
+        } catch (Exception e) {
+            System.out.println("Failed to extract following count");
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
     public static void downloadTikTokVideo(String videoUrl, String destinationFilePathForVideo, String destinationFilePathForAudio, WebDriver driver) {
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
             WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("video")));
-            String videoSource = videoElement.getAttribute("src");
-            Map<String, String> cookies = driver.manage().getCookies().stream()
-                    .collect(Collectors.toMap(cookie -> cookie.getName(), cookie -> cookie.getValue()));
-            String cookieHeader = cookies.entrySet().stream()
-                    .map(entry -> entry.getKey() + "=" + entry.getValue())
-                    .collect(Collectors.joining("; "));
-
-            List<BasicHeader> headers = driver.manage().getCookies().stream()
-                    .map(cookie -> new BasicHeader("Cookie", cookie.getName() + "=" + cookie.getValue()))
-                    .collect(Collectors.toList());
+            String videoSourceUrl = videoElement.getAttribute("src");
 
             CloseableHttpClient httpClient = HttpClients.createDefault();
-            HttpGet httpGet = new HttpGet(videoSource);
-            httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-            httpGet.setHeader("Cookie", cookieHeader);
+            HttpGet httpGet = new HttpGet(videoSourceUrl);
+            httpGet.setHeader(new BasicHeader("User-Agent", "Mozilla/5.0"));
 
             HttpResponse response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
 
             if (entity != null) {
-                String uniqueFileName = destinationFilePathForVideo + "video_" + UUID.randomUUID() + ".mp4";
                 try (InputStream inputStream = entity.getContent();
-                     FileOutputStream outputStream = new FileOutputStream(new File(uniqueFileName))) {
-
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = inputStream.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, bytesRead);
+                     OutputStream outputStream = new FileOutputStream(new File(destinationFilePathForVideo + "video.mp4"))) {
+                    int read;
+                    byte[] buffer = new byte[4096];
+                    while ((read = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, read);
                     }
                 }
-                System.out.println("Video downloaded successfully to " + uniqueFileName);
-                //convertMP4ToMP3(uniqueFileName, destinationFilePathForAudio);
-            }
 
-            EntityUtils.consume(entity);
-            httpClient.close();
+
+                File videoFile = new File(destinationFilePathForVideo + "video.mp4");
+                File audioFile = new File(destinationFilePathForAudio + "audio.mp3");
+                String command = String.format("ffmpeg -i %s -q:a 0 -map a %s", videoFile.getAbsolutePath(), audioFile.getAbsolutePath());
+
+                Process process = Runtime.getRuntime().exec(command);
+                process.waitFor();
+
+                System.out.println("Download completed successfully.");
+            } else {
+                System.out.println("Failed to download the video.");
+            }
         } catch (Exception e) {
-            System.out.println("Failed to download video");
+            System.out.println("An error occurred during video download.");
             e.printStackTrace();
         }
     }
-
-//    public static void convertMP4ToMP3(String mp4FilePath, String destinationDirectory) {
-//        String uniqueFileName = "audio_" + UUID.randomUUID() + ".mp3";
-//        String mp3FilePath = destinationDirectory + File.separator + uniqueFileName;
-//
-//        String ffmpegPath = "C:\\path\\to\\ffmpeg\\bin\\ffmpeg.exe"; // Replace with the actual path to ffmpeg
-//
-//        ProcessBuilder processBuilder = new ProcessBuilder(
-//                ffmpegPath, "-i", mp4FilePath, "-q:a", "0", "-map", "a", mp3FilePath
-//        );
-//
-//        try {
-//            Process process = processBuilder.start();
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                System.out.println(line);
-//            }
-//            int exitCode = process.waitFor();
-//            if (exitCode == 0) {
-//                System.out.println("MP4 to MP3 conversion completed successfully. File saved as " + mp3FilePath);
-//            } else {
-//                System.out.println("MP4 to MP3 conversion failed with exit code: " + exitCode);
-//            }
-//        } catch (IOException | InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
 }
