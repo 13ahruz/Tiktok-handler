@@ -34,6 +34,21 @@
         <version>1.18.28</version>
         <scope>compile</scope>
     </dependency>
+    <dependency>
+        <groupId>javazoom</groupId>
+        <artifactId>jlayer</artifactId>
+        <version>1.0.1</version>
+    </dependency>
+    <dependency>
+        <groupId>io.humble</groupId>
+        <artifactId>humble-video-all</artifactId>
+        <version>0.3.0</version>
+    </dependency>
+    <dependency>
+        <groupId>net.bramp.ffmpeg</groupId>
+        <artifactId>ffmpeg</artifactId>
+        <version>0.6.2</version>
+    </dependency>
 
 </dependencies>
     <properties>

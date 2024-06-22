@@ -15,7 +15,9 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +29,7 @@ public class TiktokScraperSelenium {
 
     private static String driverType;
     private static final String OS = System.getProperty("os.name").toLowerCase();
-    private static final String TIKTOK_VIDEO_URL = "https://www.tiktok.com/@aq7in/video/7349961511852428545?is_from_webapp=1&sender_device=pc"; // Replace with actual URL
+    private static final String TIKTOK_VIDEO_URL = "https://www.tiktok.com/@df_art_and_craft/video/7221895017604910341?is_from_webapp=1&sender_device=pc";
     private static List<User> users = new ArrayList<>();
     private static List<Video> videos = new ArrayList<>();
 
@@ -39,7 +41,7 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         User user1 = new User();
         Video video1 = new Video();
 
@@ -53,11 +55,13 @@ public class TiktokScraperSelenium {
             String uploadDate = extractUploadDate(wait);
             int commentCount = extractCommentCount(wait);
             int saveCount = extractVideoSaveCount(wait);
-            String profileURL = extractProfileLink(wait);
-            int followerCount = extractFollowersCount(profileURL, driver, wait);
-            int followingCount = extractFollowingCount(profileURL, driver, wait);
+            String profileUrl = extractProfileLink(wait);
+            //int followerCount = extractFollowersCount(profileUrl, driver, wait);
+            //int followingCount = extractFollowingCount(profileUrl, driver, wait);
 
-            user1.setProfileUrl(profileURL);
+            //user1.setFollowerCount(followerCount);
+            //user1.setFollowingCount(followingCount);
+            user1.setProfileUrl(profileUrl);
 
             video1.setCommentsCount(commentCount);
             video1.setLikeCount(likeCount);
@@ -68,6 +72,7 @@ public class TiktokScraperSelenium {
             users.add(user1);
             videos.add(video1);
 
+
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
             System.out.println("Share count: " + shareCount);
@@ -75,12 +80,13 @@ public class TiktokScraperSelenium {
             System.out.println("Upload date: " + uploadDate);
             System.out.println("Comment count: " + commentCount);
             System.out.println("Save count: " + saveCount);
-            System.out.println("Profile URL: " + profileURL);
-            System.out.println("Follower count: " + followerCount);
-            System.out.println("Following count: " + followingCount);
+            System.out.println("Profile URL: " + profileUrl);
+            //System.out.println("Follower Count: " + followerCount);
+            //System.out.println("Following Count: " + followingCount);
 
-            downloadTikTokVideo(TIKTOK_VIDEO_URL, "src/main/resources/", "src/main/resources/sounds/", driver);
+            downloadTikTokVideo("src/main/resources/", driver);
 
+            driver.quit();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -131,7 +137,7 @@ public class TiktokScraperSelenium {
         try {
             WebElement shareCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='share-count']")));
             String shareCountText = shareCountElement.getText().trim();
-            return Integer.parseInt(shareCountText);
+            return Integer.parseInt(convertToNumber(shareCountText));
         } catch (Exception e) {
             System.out.println("Failed to find share count element");
             e.printStackTrace();
@@ -155,7 +161,7 @@ public class TiktokScraperSelenium {
         try {
             WebElement commentCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='comment-count']")));
             String commentCountText = commentCountElement.getText().trim();
-            return Integer.parseInt(commentCountText);
+            return Integer.parseInt(convertToNumber(commentCountText));
         } catch (Exception e) {
             System.out.println("Failed to find comment count element");
             e.printStackTrace();
@@ -209,13 +215,14 @@ public class TiktokScraperSelenium {
         }
     }
 
-    public static void downloadTikTokVideo(String videoUrl, String destinationFilePathForVideo, String destinationFilePathForAudio, WebDriver driver) {
+    public static void downloadTikTokVideo(String destinationFilePathForVideo, WebDriver driver) {
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
             WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("video")));
             String videoSource = videoElement.getAttribute("src");
+
             Map<String, String> cookies = driver.manage().getCookies().stream()
-                    .collect(Collectors.toMap(cookie -> cookie.getName(), cookie -> cookie.getValue()));
+                    .collect(Collectors.toMap(cookie -> cookie.getName(), cookie -> cookie.getValue(), (oldValue, newValue) -> newValue)); // Handle duplicate keys
             String cookieHeader = cookies.entrySet().stream()
                     .map(entry -> entry.getKey() + "=" + entry.getValue())
                     .collect(Collectors.joining("; "));
@@ -244,41 +251,38 @@ public class TiktokScraperSelenium {
                     }
                 }
                 System.out.println("Video downloaded successfully to " + uniqueFileName);
-                //convertMP4ToMP3(uniqueFileName, destinationFilePathForAudio);
             }
 
             EntityUtils.consume(entity);
             httpClient.close();
         } catch (Exception e) {
-            System.out.println("Failed to download video");
             e.printStackTrace();
         }
     }
 
-    private static int extractFollowersCount(String profileURL, WebDriver driver, WebDriverWait wait) {
+    private static int extractFollowersCount(String profileUrl, WebDriver driver, WebDriverWait wait) {
         try {
-            driver.get(profileURL);
-            WebElement followersElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='followers-count']")));
-            String followersText = followersElement.getText().trim();
-            return Integer.parseInt(convertToNumber(followersText));
+            driver.get(profileUrl);
+            WebElement followersCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='followers-count']")));
+            String followersCountText = followersCountElement.getText().trim();
+            return Integer.parseInt(convertToNumber(followersCountText));
         } catch (Exception e) {
-            System.out.println("Failed to extract followers count");
+            System.out.println("Failed to find followers count element");
             e.printStackTrace();
             return -1;
         }
     }
 
-    private static int extractFollowingCount(String profileURL, WebDriver driver, WebDriverWait wait) {
+    private static int extractFollowingCount(String profileUrl, WebDriver driver, WebDriverWait wait) {
         try {
-            driver.get(profileURL);
-            WebElement followingElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='following-count']")));
-            String followingText = followingElement.getText().trim();
-            return Integer.parseInt(convertToNumber(followingText));
+            driver.get(profileUrl);
+            WebElement followingCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='following-count']")));
+            String followingCountText = followingCountElement.getText().trim();
+            return Integer.parseInt(convertToNumber(followingCountText));
         } catch (Exception e) {
-            System.out.println("Failed to extract following count");
+            System.out.println("Failed to find following count element");
             e.printStackTrace();
             return -1;
         }
     }
-
 }
