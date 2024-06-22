@@ -113,6 +113,7 @@ public class TiktokScraperSelenium {
         return profileLinks;
     }
 
+
     private static int extractShareCount(WebDriverWait wait) {
         try {
             WebElement viewCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='share-count']")));
