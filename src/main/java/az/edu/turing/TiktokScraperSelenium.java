@@ -7,6 +7,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));  // Reduced wait time
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(25));  // Reduced wait time
 
         try {
             driver.get(TIKTOK_VIDEO_URL);
@@ -43,6 +44,9 @@ public class TiktokScraperSelenium {
             String username = extractUsername(wait);
             String videoId = extractVideoId(wait);
             int shareCount = extractShareCount(wait);
+
+
+
 
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
@@ -53,6 +57,10 @@ public class TiktokScraperSelenium {
 
             for (String profileLink : profileLinks) {
                 System.out.println("Profile Link: " + profileLink);
+            }
+            List<String> videoUrl = extractVideoUrls(wait );
+            for (String video : videoUrl){
+                System.out.println("Video URL: " + video);
             }
 
         } catch (Exception e) {
@@ -123,5 +131,24 @@ public class TiktokScraperSelenium {
             e.printStackTrace();
             return -1;
         }
+    }
+
+    private static List<String> extractVideoUrls(WebDriverWait wait) {
+        List<String> videoUrls = new ArrayList<>();
+        try {
+            // Find all video elements
+            List<WebElement> videoElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("a[href*='/video/']")));
+
+            // Extract URLs of all videos
+            for (WebElement videoElement : videoElements) {
+                String videoUrl = videoElement.getAttribute("href");
+                videoUrls.add(videoUrl);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Failed to extract video URLs");
+            e.printStackTrace();
+        }
+        return videoUrls;
     }
 }
