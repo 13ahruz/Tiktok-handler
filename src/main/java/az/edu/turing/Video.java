@@ -5,13 +5,13 @@ import java.util.Objects;
 
 public class Video {
     private Long videoId;
-    private LocalDate shareDate;
-    private long shareCount;
+    private String shareDate;
+    private int shareCount;
     private long likeCount;
     private long commentsCount;
     private long saveCount;
 
-    public Video(Long videoId, LocalDate shareDate, long shareCount, long likeCount, long commentsCount, long saveCount) {
+    public Video(Long videoId, String shareDate, int shareCount, long likeCount, long commentsCount, long saveCount) {
         this.videoId = videoId;
         this.shareDate = shareDate;
         this.shareCount = shareCount;
@@ -28,19 +28,19 @@ public class Video {
         this.videoId = videoId;
     }
 
-    public LocalDate getShareDate() {
+    public String getShareDate() {
         return shareDate;
     }
 
-    public void setShareDate(LocalDate shareDate) {
+    public void setShareDate(String shareDate) {
         this.shareDate = shareDate;
     }
 
-    public long getShareCount() {
+    public int getShareCount() {
         return shareCount;
     }
 
-    public void setShareCount(long shareCount) {
+    public void setShareCount(int shareCount) {
         this.shareCount = shareCount;
     }
 
