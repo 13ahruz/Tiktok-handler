@@ -1,43 +1,40 @@
 package az.edu.turing;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class Video {
     private Long videoId;
-    private LocalDate shareDate;
+    private String shareDate;
     private long shareCount;
     private long likeCount;
     private long commentsCount;
     private long saveCount;
-    private byte[] sound;
-    private String profileLink;
 
-    public Video(Long videoId, LocalDate shareDate, long shareCount, long likeCount, long commentsCount, long saveCount, byte[] sound, String profileLink) {
-        this.videoId = videoId;
+    private static long MaxId = 0;
+
+    public Video(String shareDate, long shareCount, long likeCount, long commentsCount, long saveCount) {
+        this.videoId = ++MaxId;
         this.shareDate = shareDate;
         this.shareCount = shareCount;
         this.likeCount = likeCount;
         this.commentsCount = commentsCount;
         this.saveCount = saveCount;
-        this.sound = sound;
-        this.profileLink = profileLink;
+    }
+
+    public Video (){
+        this.videoId = ++MaxId;
     }
 
     public Long getVideoId() {
         return videoId;
     }
 
-    public void setVideoId(Long videoId) {
-        this.videoId = videoId;
-    }
-
-    public LocalDate getShareDate() {
+    public String getShareDate() {
         return shareDate;
     }
 
-    public void setShareDate(LocalDate shareDate) {
+    public void setShareDate(String shareDate) {
         this.shareDate = shareDate;
     }
 
@@ -66,6 +63,7 @@ public class Video {
     }
 
 
+
     public long getSaveCount() {
         return saveCount;
     }
@@ -74,33 +72,17 @@ public class Video {
         this.saveCount = saveCount;
     }
 
-    public byte[] getSound() {
-        return sound;
-    }
-
-    public void setSound(byte[] sound) {
-        this.sound = sound;
-    }
-
-    public String getProfileLink() {
-        return profileLink;
-    }
-
-    public void setProfileLink(String profileLink) {
-        this.profileLink = profileLink;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Video video = (Video) o;
-        return shareCount == video.shareCount && likeCount == video.likeCount && commentsCount == video.commentsCount && saveCount == video.saveCount && Objects.equals(videoId, video.videoId) && Objects.equals(shareDate, video.shareDate) && Objects.deepEquals(sound, video.sound) && Objects.equals(profileLink, video.profileLink);
+        return shareCount == video.shareCount && likeCount == video.likeCount && commentsCount == video.commentsCount  && saveCount == video.saveCount && Objects.equals(videoId, video.videoId) && Objects.equals(shareDate, video.shareDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(videoId, shareDate, shareCount, likeCount, commentsCount, saveCount, Arrays.hashCode(sound), profileLink);
+        return Objects.hash(videoId, shareDate, shareCount, likeCount, commentsCount, saveCount);
     }
 
     @Override
@@ -109,11 +91,10 @@ public class Video {
                 "videoId=" + videoId +
                 ", shareDate=" + shareDate +
                 ", shareCount=" + shareCount +
-                ", likeCount=" + likeCount +
+                ", likesCount=" + likeCount +
                 ", commentsCount=" + commentsCount +
-                ", saveCount=" + saveCount +
-                ", sound=" + Arrays.toString(sound) +
-                ", profileLink='" + profileLink + '\'' +
+                ", savedVideoCount=" + saveCount +
                 '}';
     }
+
 }
