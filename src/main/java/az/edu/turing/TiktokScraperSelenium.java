@@ -85,7 +85,7 @@ public class TiktokScraperSelenium {
             //System.out.println("Follower Count: " + followerCount);
             //System.out.println("Following Count: " + followingCount);
 
-            downloadTikTokVideo("src/main/resources/", driver);
+            video1.soundPath = downloadTikTokVideo("src/main/resources/", driver);
 
             driver.quit();
         } catch (Exception e) {
@@ -216,7 +216,7 @@ public class TiktokScraperSelenium {
         }
     }
 
-    public static void downloadTikTokVideo(String destinationFilePathForVideo, WebDriver driver) {
+    public static String downloadTikTokVideo(String destinationFilePathForVideo, WebDriver driver) {
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
             WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("video")));
@@ -255,6 +255,7 @@ public class TiktokScraperSelenium {
                 System.out.println("Video downloaded successfully to " + uniqueFileName);
                 convertMp4ToMp3(uniqueFileName, "src/main/resources/sounds/sound_" + UniqueId + ".mp3", "00:00:00");
                 Files.delete(Path.of(uniqueFileName));
+                return "src/main/resources/sounds/sound_" + UniqueId + ".mp3";
             }
 
             EntityUtils.consume(entity);
@@ -262,6 +263,7 @@ public class TiktokScraperSelenium {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return "";
     }
 
     private static int extractFollowersCount(String profileUrl, WebDriver driver, WebDriverWait wait) {
