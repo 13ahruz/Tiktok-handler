@@ -16,6 +16,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -252,6 +254,7 @@ public class TiktokScraperSelenium {
                 }
                 System.out.println("Video downloaded successfully to " + uniqueFileName);
                 convertMp4ToMp3(uniqueFileName, "src/main/resources/sounds/sound_" + UniqueId + ".mp3", "00:00:00");
+                Files.delete(Path.of(uniqueFileName));
             }
 
             EntityUtils.consume(entity);
