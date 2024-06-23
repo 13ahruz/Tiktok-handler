@@ -10,16 +10,18 @@ public class Video {
     private long likeCount;
     private long commentsCount;
     private long saveCount;
+    String soundPath;
 
     private static long MaxId = 0;
 
-    public Video(String shareDate, long shareCount, long likeCount, long commentsCount, long saveCount) {
+    public Video(String shareDate, long shareCount, long likeCount, long commentsCount, long saveCount, String soundPath) {
         this.videoId = ++MaxId;
         this.shareDate = shareDate;
         this.shareCount = shareCount;
         this.likeCount = likeCount;
         this.commentsCount = commentsCount;
         this.saveCount = saveCount;
+        this.soundPath = soundPath;
     }
 
     public Video (){
@@ -28,6 +30,14 @@ public class Video {
 
     public Long getVideoId() {
         return videoId;
+    }
+
+    public void setSoundPath(String soundPath) {
+        this.soundPath = soundPath;
+    }
+
+    public String getSoundPath() {
+        return soundPath;
     }
 
     public String getShareDate() {
