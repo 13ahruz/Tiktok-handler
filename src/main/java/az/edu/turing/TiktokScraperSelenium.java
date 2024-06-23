@@ -19,10 +19,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TiktokScraperSelenium {
@@ -33,8 +30,18 @@ public class TiktokScraperSelenium {
     private static List<User> users = new ArrayList<>();
     private static List<Video> videos = new ArrayList<>();
     private static UUID UniqueId;
+    private static Scanner sc = new Scanner(System.in);
+    private static long videoGettingCount;
 
     public static void main(String[] args) {
+        try {
+            System.out.println("How many videos you want to get sound from?");
+            videoGettingCount = sc.nextLong();
+        }
+        catch (Exception e){
+            System.err.println("No valid count. Showing only 1: ");
+        }
+
         setDriverPath();
 
         ChromeOptions options = new ChromeOptions();
