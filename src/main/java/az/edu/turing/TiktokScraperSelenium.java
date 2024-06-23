@@ -16,6 +16,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ public class TiktokScraperSelenium {
     private static final String TIKTOK_VIDEO_URL = "https://www.tiktok.com/@df_art_and_craft/video/7221895017604910341?is_from_webapp=1&sender_device=pc";
     private static List<User> users = new ArrayList<>();
     private static List<Video> videos = new ArrayList<>();
+    private static UUID UniqueId;
 
     public static void main(String[] args) {
         setDriverPath();
@@ -54,11 +57,14 @@ public class TiktokScraperSelenium {
             int commentCount = extractCommentCount(wait);
             int saveCount = extractVideoSaveCount(wait);
             String profileUrl = extractProfileLink(wait);
-            //int followerCount = extractFollowersCount(profileUrl, driver, wait);
-            //int followingCount = extractFollowingCount(profileUrl, driver, wait);
 
-            //user1.setFollowerCount(followerCount);
-            //user1.setFollowingCount(followingCount);
+            video1.soundPath = downloadTikTokVideo("src/main/resources/", driver);
+
+            int followerCount = extractFollowersCount(profileUrl, driver, wait);
+            int followingCount = extractFollowingCount(profileUrl, driver, wait);
+
+            user1.setFollowerCount(followerCount);
+            user1.setFollowingCount(followingCount);
             user1.setProfileUrl(profileUrl);
 
             video1.setCommentsCount(commentCount);
@@ -79,10 +85,8 @@ public class TiktokScraperSelenium {
             System.out.println("Comment count: " + commentCount);
             System.out.println("Save count: " + saveCount);
             System.out.println("Profile URL: " + profileUrl);
-            //System.out.println("Follower Count: " + followerCount);
-            //System.out.println("Following Count: " + followingCount);
-
-            downloadTikTokVideo("src/main/resources/", driver);
+            System.out.println("Follower Count: " + followerCount);
+            System.out.println("Following Count: " + followingCount);
 
             driver.quit();
         } catch (Exception e) {
@@ -213,7 +217,7 @@ public class TiktokScraperSelenium {
         }
     }
 
-    public static void downloadTikTokVideo(String destinationFilePathForVideo, WebDriver driver) {
+    public static String downloadTikTokVideo(String destinationFilePathForVideo, WebDriver driver) {
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
             WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("video")));
@@ -238,7 +242,8 @@ public class TiktokScraperSelenium {
             HttpEntity entity = response.getEntity();
 
             if (entity != null) {
-                String uniqueFileName = destinationFilePathForVideo + "video_" + UUID.randomUUID() + ".mp4";
+                UniqueId = UUID.randomUUID();
+                String uniqueFileName = destinationFilePathForVideo + "video_" + UniqueId + ".mp4";
                 try (InputStream inputStream = entity.getContent();
                      FileOutputStream outputStream = new FileOutputStream(new File(uniqueFileName))) {
 
@@ -249,7 +254,9 @@ public class TiktokScraperSelenium {
                     }
                 }
                 System.out.println("Video downloaded successfully to " + uniqueFileName);
-                convertMp4ToMp3("src/main/resources/video_14aa1c3b-ec98-433a-a241-f671c10259ea.mp4", "src/main/resources/sounds/music.mp3", "00:00:00");
+                convertMp4ToMp3(uniqueFileName, "src/main/resources/sounds/sound_" + UniqueId + ".mp3", "00:00:00");
+                Files.delete(Path.of(uniqueFileName));
+                return "src/main/resources/sounds/sound_" + UniqueId + ".mp3";
             }
 
             EntityUtils.consume(entity);
@@ -257,6 +264,7 @@ public class TiktokScraperSelenium {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return "";
     }
 
     private static int extractFollowersCount(String profileUrl, WebDriver driver, WebDriverWait wait) {
@@ -287,8 +295,17 @@ public class TiktokScraperSelenium {
 
     public static void convertMp4ToMp3(String inputFilePath, String outputFilePath, String startTime)
             throws IOException, InterruptedException {
+        String ffmpegPath="";
+        if (OS.contains("win")) {
+            ffmpegPath="ffDrivers/ffmpeg-master-latest-win64-gpl-shared/bin/ffmpeg.exe";
+        } else if (OS.contains("linux")) {
+            ffmpegPath="ffDrivers/ffmpeg-master-latest-linux64-gpl-shared/bin/ffmpeg";
+        } else if (OS.contains("mac")) {
+            ffmpegPath="ffDrivers/MacFF/ffmpeg";
+        }
+
         ProcessBuilder processBuilder = new ProcessBuilder(
-                "ffmpeg-master-latest-win64-gpl-shared/bin/ffmpeg.exe", "-i", inputFilePath, "-vn", "-ss", startTime, "-acodec", "libmp3lame", outputFilePath);
+                ffmpegPath, "-i", inputFilePath, "-vn", "-ss", startTime, "-acodec", "libmp3lame", outputFilePath);
 
         processBuilder.redirectErrorStream(true);
 
@@ -302,5 +319,4 @@ public class TiktokScraperSelenium {
             System.out.println("Error extracting audio. Exit code: " + exitCode);
         }
     }
-
 }
