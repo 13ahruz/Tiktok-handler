@@ -44,7 +44,7 @@ public class TiktokScraperSelenium {
         options.addArguments("window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
         User user1 = new User();
         Video video1 = new Video();
 
@@ -79,6 +79,9 @@ public class TiktokScraperSelenium {
             users.add(user1);
             videos.add(video1);
 
+            commentProfileUrls.forEach(System.out::println);
+            System.out.println(extractLastVideoFromProfile(commentProfileUrls.get(0), driver, wait));
+
 
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
@@ -90,7 +93,6 @@ public class TiktokScraperSelenium {
             System.out.println("Profile URL: " + profileUrl);
             System.out.println("Follower Count: " + followerCount);
             System.out.println("Following Count: " + followingCount);
-            commentProfileUrls.forEach(System.out::println);
 
             driver.quit();
         } catch (Exception e) {
@@ -355,5 +357,21 @@ public class TiktokScraperSelenium {
         }
 
         return profileLinks;
+    }
+
+    private static String extractLastVideoFromProfile (String profileUrl, WebDriver driver, WebDriverWait wait){
+        driver.get("https://www.tiktok.com/@asousa808");
+
+        List<WebElement> videoElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//div[@data-e2e='user-post-item']//a")));
+
+        if (!videoElements.isEmpty()) {
+
+            String firstVideoUrl = videoElements.get(0).getAttribute("href");
+            return firstVideoUrl;
+
+        } else {
+            System.out.println("No videos found on the profile.");
+            return "";
+        }
     }
 }
