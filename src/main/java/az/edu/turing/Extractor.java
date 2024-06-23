@@ -88,6 +88,21 @@ public class Extractor {
         return firstVideoLinkElement.getAttribute("href");
     }
 
+    public static List<String> extractVideoUrls(WebDriverWait wait) {
+        List<String> videoUrls = new ArrayList<>();
+        try {
+            List<WebElement> videoElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("a[href*='/video/']")));
+            for (WebElement videoElement : videoElements) {
+                String videoUrl = videoElement.getAttribute("href");
+                videoUrls.add(videoUrl);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to extract video URLs");
+            e.printStackTrace();
+        }
+        return videoUrls;
+    }
+
     private static String convertToNumber(String text) {
         if (text.contains("K")) {
             double number = Double.parseDouble(text.replace("K", "").replace(",", "").trim()) * 1000;
