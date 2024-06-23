@@ -303,7 +303,7 @@ public class TiktokScraperSelenium {
         } else if (OS.contains("linux")) {
             ffmpegPath="ffDrivers/ffmpeg-master-latest-linux64-gpl-shared/bin/ffmpeg";
         } else if (OS.contains("mac")) {
-            ffmpegPath="ffDrivers/MacFF/ffmpeg";
+            ffmpegPath="ffDrivers/MacFFmpeg/ffmpeg";
         }
 
         ProcessBuilder processBuilder = new ProcessBuilder(
