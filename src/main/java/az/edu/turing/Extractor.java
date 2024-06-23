@@ -6,8 +6,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Extractor {
@@ -88,19 +88,19 @@ public class Extractor {
         return firstVideoLinkElement.getAttribute("href");
     }
 
-    public static List<String> extractVideoUrls(WebDriverWait wait) {
-        List<String> videoUrls = new ArrayList<>();
+    public static Set<String> extractVideoUrls(WebDriverWait wait) {
+
         try {
             List<WebElement> videoElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("a[href*='/video/']")));
             for (WebElement videoElement : videoElements) {
                 String videoUrl = videoElement.getAttribute("href");
-                videoUrls.add(videoUrl);
+                TiktokScraperSelenium.VIDEO_URL.add(videoUrl);
             }
         } catch (Exception e) {
             System.out.println("Failed to extract video URLs");
             e.printStackTrace();
         }
-        return videoUrls;
+        return TiktokScraperSelenium.VIDEO_URL;
     }
 
     private static String convertToNumber(String text) {
