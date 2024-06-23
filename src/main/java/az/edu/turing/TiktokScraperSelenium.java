@@ -22,7 +22,14 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class TiktokScraperSelenium {
@@ -43,8 +50,9 @@ public class TiktokScraperSelenium {
         options.addArguments("--headless");
         options.addArguments("window-size=1920,1080");
 
+        ExecutorService executor = Executors.newFixedThreadPool(5);
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         User user1 = new User();
         Video video1 = new Video();
 
@@ -61,27 +69,53 @@ public class TiktokScraperSelenium {
             commentProfileUrls = generateTiktokProfileLinks(extractUsernames(wait));
             String profileUrl = extractProfileLink(wait);
 
-            video1.soundPath = downloadTikTokVideo("src/main/resources/", driver);
+            video1.setSoundPath(downloadTikTokVideo("src/main/resources/", driver));
 
-            int followerCount = extractFollowersCount(profileUrl, driver, wait);
-            int followingCount = extractFollowingCount(profileUrl, driver, wait);
+            // Create a list of tasks to execute concurrently
+            List<Callable<Void>> tasks = new ArrayList<>();
+            tasks.add(() -> {
+                user1.setFollowerCount(extractFollowersCount(profileUrl, driver, wait));
+                return null;
+            });
+            tasks.add(() -> {
+                user1.setFollowingCount(extractFollowingCount(profileUrl, driver, wait));
+                return null;
+            });
+            tasks.add(() -> {
+                user1.setProfileUrl(profileUrl);
+                return null;
+            });
+            tasks.add(() -> {
+                video1.setCommentsCount(commentCount);
+                return null;
+            });
+            tasks.add(() -> {
+                video1.setLikeCount(likeCount);
+                return null;
+            });
+            tasks.add(() -> {
+                video1.setSaveCount(saveCount);
+                return null;
+            });
+            tasks.add(() -> {
+                video1.setShareCount(shareCount);
+                return null;
+            });
+            tasks.add(() -> {
+                video1.setShareDate(uploadDate);
+                return null;
+            });
 
-            user1.setFollowerCount(followerCount);
-            user1.setFollowingCount(followingCount);
-            user1.setProfileUrl(profileUrl);
+            // Execute tasks concurrently
+            List<Future<Void>> futures = executor.invokeAll(tasks);
 
-            video1.setCommentsCount(commentCount);
-            video1.setLikeCount(likeCount);
-            video1.setSaveCount(saveCount);
-            video1.setShareCount(shareCount);
-            video1.setShareDate(uploadDate);
+            // Wait for all tasks to complete
+            for (Future<Void> future : futures) {
+                future.get();
+            }
 
             users.add(user1);
             videos.add(video1);
-
-            commentProfileUrls.forEach(System.out::println);
-            System.out.println(extractLastVideoFromProfile(commentProfileUrls.get(0), driver, wait));
-
 
             System.out.println("Publisher's username: " + username);
             System.out.println("Video ID: " + videoId);
@@ -91,16 +125,17 @@ public class TiktokScraperSelenium {
             System.out.println("Comment count: " + commentCount);
             System.out.println("Save count: " + saveCount);
             System.out.println("Profile URL: " + profileUrl);
-            System.out.println("Follower Count: " + followerCount);
-            System.out.println("Following Count: " + followingCount);
+            System.out.println("Follower Count: " + user1.getFollowerCount());
+            System.out.println("Following Count: " + user1.getFollowingCount());
+            commentProfileUrls.forEach(System.out::println);
 
-            driver.quit();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (driver != null) {
                 driver.quit();
             }
+            executor.shutdown();
         }
     }
 
@@ -302,17 +337,15 @@ public class TiktokScraperSelenium {
         }
     }
 
-    //TEST
-
     public static void convertMp4ToMp3(String inputFilePath, String outputFilePath, String startTime)
             throws IOException, InterruptedException {
-        String ffmpegPath="";
+        String ffmpegPath = "";
         if (OS.contains("win")) {
-            ffmpegPath="ffDrivers/ffmpeg-master-latest-win64-gpl-shared/bin/ffmpeg.exe";
+            ffmpegPath = "ffDrivers/ffmpeg-master-latest-win64-gpl-shared/bin/ffmpeg.exe";
         } else if (OS.contains("linux")) {
-            ffmpegPath="ffDrivers/ffmpeg-master-latest-linux64-gpl-shared/bin/ffmpeg";
+            ffmpegPath = "ffDrivers/ffmpeg-master-latest-linux64-gpl-shared/bin/ffmpeg";
         } else if (OS.contains("mac")) {
-            ffmpegPath="ffDrivers/macff/ffmpeg";
+            ffmpegPath = "ffDrivers/macff/ffmpeg";
         }
 
         ProcessBuilder processBuilder = new ProcessBuilder(
@@ -357,21 +390,5 @@ public class TiktokScraperSelenium {
         }
 
         return profileLinks;
-    }
-
-    private static String extractLastVideoFromProfile (String profileUrl, WebDriver driver, WebDriverWait wait){
-        driver.get("https://www.tiktok.com/@asousa808");
-
-        List<WebElement> videoElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//div[@data-e2e='user-post-item']//a")));
-
-        if (!videoElements.isEmpty()) {
-
-            String firstVideoUrl = videoElements.get(0).getAttribute("href");
-            return firstVideoUrl;
-
-        } else {
-            System.out.println("No videos found on the profile.");
-            return "";
-        }
     }
 }
