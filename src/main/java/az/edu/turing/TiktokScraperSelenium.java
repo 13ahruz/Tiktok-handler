@@ -293,7 +293,7 @@ public class TiktokScraperSelenium {
         }
     }
 
-    //test
+    //TEST
 
     public static void convertMp4ToMp3(String inputFilePath, String outputFilePath, String startTime)
             throws IOException, InterruptedException {
@@ -303,7 +303,7 @@ public class TiktokScraperSelenium {
         } else if (OS.contains("linux")) {
             ffmpegPath="ffDrivers/ffmpeg-master-latest-linux64-gpl-shared/bin/ffmpeg";
         } else if (OS.contains("mac")) {
-            ffmpegPath="ffDrivers/MacFFmpeg/ffmpeg";
+            ffmpegPath="ffDrivers/macff/ffmpeg";
         }
 
         ProcessBuilder processBuilder = new ProcessBuilder(
