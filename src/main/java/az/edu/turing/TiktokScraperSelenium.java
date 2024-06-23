@@ -57,11 +57,14 @@ public class TiktokScraperSelenium {
             int commentCount = extractCommentCount(wait);
             int saveCount = extractVideoSaveCount(wait);
             String profileUrl = extractProfileLink(wait);
-            //int followerCount = extractFollowersCount(profileUrl, driver, wait);
-            //int followingCount = extractFollowingCount(profileUrl, driver, wait);
 
-            //user1.setFollowerCount(followerCount);
-            //user1.setFollowingCount(followingCount);
+            video1.soundPath = downloadTikTokVideo("src/main/resources/", driver);
+
+            int followerCount = extractFollowersCount(profileUrl, driver, wait);
+            int followingCount = extractFollowingCount(profileUrl, driver, wait);
+
+            user1.setFollowerCount(followerCount);
+            user1.setFollowingCount(followingCount);
             user1.setProfileUrl(profileUrl);
 
             video1.setCommentsCount(commentCount);
@@ -82,10 +85,8 @@ public class TiktokScraperSelenium {
             System.out.println("Comment count: " + commentCount);
             System.out.println("Save count: " + saveCount);
             System.out.println("Profile URL: " + profileUrl);
-            //System.out.println("Follower Count: " + followerCount);
-            //System.out.println("Following Count: " + followingCount);
-
-            video1.soundPath = downloadTikTokVideo("src/main/resources/", driver);
+            System.out.println("Follower Count: " + followerCount);
+            System.out.println("Following Count: " + followingCount);
 
             driver.quit();
         } catch (Exception e) {
