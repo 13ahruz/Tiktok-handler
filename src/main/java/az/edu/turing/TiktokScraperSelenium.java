@@ -295,8 +295,17 @@ public class TiktokScraperSelenium {
 
     public static void convertMp4ToMp3(String inputFilePath, String outputFilePath, String startTime)
             throws IOException, InterruptedException {
+        String ffmpegPath="";
+        if (OS.contains("win")) {
+            ffmpegPath="ffDrivers/ffmpeg-master-latest-win64-gpl-shared/bin/ffmpeg.exe";
+        } else if (OS.contains("linux")) {
+            ffmpegPath="ffDrivers/ffmpeg-master-latest-linux64-gpl-shared/bin/ffmpeg";
+        } else if (OS.contains("mac")) {
+            ffmpegPath="ffDrivers/MacFF/ffmpeg";
+        }
+
         ProcessBuilder processBuilder = new ProcessBuilder(
-                "ffmpeg-master-latest-win64-gpl-shared/bin/ffmpeg.exe", "-i", inputFilePath, "-vn", "-ss", startTime, "-acodec", "libmp3lame", outputFilePath);
+                ffmpegPath, "-i", inputFilePath, "-vn", "-ss", startTime, "-acodec", "libmp3lame", outputFilePath);
 
         processBuilder.redirectErrorStream(true);
 
@@ -310,5 +319,4 @@ public class TiktokScraperSelenium {
             System.out.println("Error extracting audio. Exit code: " + exitCode);
         }
     }
-
 }
