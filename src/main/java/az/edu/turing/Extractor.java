@@ -88,7 +88,7 @@ public class Extractor {
         return firstVideoLinkElement.getAttribute("href");
     }
 
-    private static List<String> extractVideoUrls(WebDriverWait wait) {
+    public static List<String> extractVideoUrls(WebDriverWait wait) {
         List<String> videoUrls = new ArrayList<>();
         try {
             List<WebElement> videoElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("a[href*='/video/']")));

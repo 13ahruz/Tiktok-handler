@@ -72,7 +72,7 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static void printResults(String username, String videoId, int shareCount, int likeCount, String uploadDate, int commentCount, int saveCount, String profileUrl, User user1) {
+    private static void printResults(String username, String videoId, int shareCount, int likeCount, String uploadDate, int commentCount, int saveCount, String profileUrl, User user1, List <String> videoUrls) {
         System.out.println("Publisher's username: " + username);
         System.out.println("Video ID: " + videoId);
         System.out.println("Share count: " + shareCount);
@@ -83,7 +83,7 @@ public class TiktokScraperSelenium {
         System.out.println("Profile URL: " + profileUrl);
         System.out.println("Follower Count: " + user1.getFollowerCount());
         System.out.println("Following Count: " + user1.getFollowingCount());
-        //commentProfileUrls.forEach(System.out::println);
+        videoUrls.forEach(System.out::println);
     }
 
     private static void runAll (String videoURL, WebDriverWait wait, WebDriver driver){
@@ -99,9 +99,8 @@ public class TiktokScraperSelenium {
             String uploadDate = Extractor.extractUploadDate(wait);
             int commentCount = Extractor.extractCommentCount(wait);
             int saveCount = Extractor.extractVideoSaveCount(wait);
-           // commentProfileUrls = Extractor.generateTiktokProfileLinks(Extractor.extractUsernames(wait));
+            List <String> videoUrls = Extractor.extractVideoUrls(wait);
             String profileUrl = Extractor.extractProfileLink(wait);
-            String videoUrl = Extractor.extractFirstVideoLinkFromProfile(driver, wait, profileUrl);
 
             video1.setSoundPath(Downloader.downloadTikTokVideo("src/main/resources/", driver));
 
@@ -110,7 +109,7 @@ public class TiktokScraperSelenium {
             users.add(user1);
             videos.add(video1);
 
-            printResults(username, videoId, shareCount, likeCount, uploadDate, commentCount, saveCount, profileUrl, user1);
+            printResults(username, videoId, shareCount, likeCount, uploadDate, commentCount, saveCount, profileUrl, user1, videoUrls);
 
         } catch (Exception e) {
             e.printStackTrace();
