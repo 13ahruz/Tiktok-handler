@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Configuration {
-
     public static final String OS = System.getProperty("os.name").toLowerCase();
     private static String driverType;
 
