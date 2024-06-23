@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -49,10 +50,24 @@ public class TiktokScraperSelenium {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");
         options.addArguments("window-size=1920,1080");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--disable-software-rasterizer");
+        options.addArguments("--disable-notifications");
+        options.addArguments("--disable-popup-blocking");
+        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+        // Add preferences to block images, CSS, and JavaScript
+        Map<String, Object> prefs = new HashMap<>();
+        prefs.put("profile.managed_default_content_settings.images", 2);
+        prefs.put("profile.managed_default_content_settings.stylesheets", 2);
+        prefs.put("profile.managed_default_content_settings.javascript", 2);
+        prefs.put("profile.managed_default_content_settings.plugins", 2);
+        options.setExperimentalOption("prefs", prefs);
 
         ExecutorService executor = Executors.newFixedThreadPool(5);
         WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         User user1 = new User();
         Video video1 = new Video();
 
@@ -71,7 +86,6 @@ public class TiktokScraperSelenium {
 
             video1.setSoundPath(downloadTikTokVideo("src/main/resources/", driver));
 
-            // Create a list of tasks to execute concurrently
             List<Callable<Void>> tasks = new ArrayList<>();
             tasks.add(() -> {
                 user1.setFollowerCount(extractFollowersCount(profileUrl, driver, wait));
@@ -106,10 +120,8 @@ public class TiktokScraperSelenium {
                 return null;
             });
 
-            // Execute tasks concurrently
             List<Future<Void>> futures = executor.invokeAll(tasks);
 
-            // Wait for all tasks to complete
             for (Future<Void> future : futures) {
                 future.get();
             }
@@ -155,7 +167,7 @@ public class TiktokScraperSelenium {
 
     private static String extractUsername(WebDriverWait wait) {
         try {
-            WebElement usernameElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@data-e2e='browse-username']")));
+            WebElement usernameElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("span[data-e2e='browse-username']")));
             return usernameElement.getText();
         } catch (Exception e) {
             System.out.println("Failed to find username element");
@@ -166,7 +178,7 @@ public class TiktokScraperSelenium {
 
     private static String extractVideoId(WebDriverWait wait) {
         try {
-            WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class, 'tiktok-web-player')]")));
+            WebElement videoElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.tiktok-web-player")));
             String id = videoElement.getAttribute("id");
             return id.split("-")[2];
         } catch (Exception e) {
@@ -178,7 +190,7 @@ public class TiktokScraperSelenium {
 
     private static int extractShareCount(WebDriverWait wait) {
         try {
-            WebElement shareCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='share-count']")));
+            WebElement shareCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("strong[data-e2e='share-count']")));
             String shareCountText = shareCountElement.getText().trim();
             return Integer.parseInt(convertToNumber(shareCountText));
         } catch (Exception e) {
@@ -190,7 +202,7 @@ public class TiktokScraperSelenium {
 
     private static int extractLikeCount(WebDriverWait wait) {
         try {
-            WebElement likeCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='like-count']")));
+            WebElement likeCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("strong[data-e2e='like-count']")));
             String likeCountText = likeCountElement.getText().trim();
             return Integer.parseInt(convertToNumber(likeCountText));
         } catch (Exception e) {
@@ -202,7 +214,7 @@ public class TiktokScraperSelenium {
 
     private static int extractCommentCount(WebDriverWait wait) {
         try {
-            WebElement commentCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='comment-count']")));
+            WebElement commentCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("strong[data-e2e='comment-count']")));
             String commentCountText = commentCountElement.getText().trim();
             return Integer.parseInt(convertToNumber(commentCountText));
         } catch (Exception e) {
@@ -214,7 +226,7 @@ public class TiktokScraperSelenium {
 
     private static int extractVideoSaveCount(WebDriverWait wait) {
         try {
-            WebElement savedVideoCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='undefined-count']")));
+            WebElement savedVideoCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("strong[data-e2e='undefined-count']")));
             String savedVideoCountText = savedVideoCountElement.getText().trim();
             return Integer.parseInt(convertToNumber(savedVideoCountText));
         } catch (Exception e) {
@@ -249,7 +261,7 @@ public class TiktokScraperSelenium {
 
     private static String extractProfileLink(WebDriverWait wait) {
         try {
-            WebElement usernameElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[@data-e2e='browse-username']")));
+            WebElement usernameElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("span[data-e2e='browse-username']")));
             String username = usernameElement.getText();
             String profileLink = "https://www.tiktok.com/@" + username;
 
@@ -314,7 +326,7 @@ public class TiktokScraperSelenium {
     private static int extractFollowersCount(String profileUrl, WebDriver driver, WebDriverWait wait) {
         try {
             driver.get(profileUrl);
-            WebElement followersCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='followers-count']")));
+            WebElement followersCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("strong[data-e2e='followers-count']")));
             String followersCountText = followersCountElement.getText().trim();
             return Integer.parseInt(convertToNumber(followersCountText));
         } catch (Exception e) {
@@ -327,7 +339,7 @@ public class TiktokScraperSelenium {
     private static int extractFollowingCount(String profileUrl, WebDriver driver, WebDriverWait wait) {
         try {
             driver.get(profileUrl);
-            WebElement followingCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//strong[@data-e2e='following-count']")));
+            WebElement followingCountElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("strong[data-e2e='following-count']")));
             String followingCountText = followingCountElement.getText().trim();
             return Integer.parseInt(convertToNumber(followingCountText));
         } catch (Exception e) {
@@ -367,7 +379,7 @@ public class TiktokScraperSelenium {
     private static List<String> extractUsernames(WebDriverWait wait) {
         List<String> usernames = new ArrayList<>();
         try {
-            List<WebElement> usernameElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//a[contains(@class, 'css-fx1avz-StyledLink-StyledUserLinkName')]")));
+            List<WebElement> usernameElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("a.css-fx1avz-StyledLink-StyledUserLinkName")));
 
             for (WebElement usernameElement : usernameElements) {
                 String username = usernameElement.getAttribute("href").split("@")[1];
