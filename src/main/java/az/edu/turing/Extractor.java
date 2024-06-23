@@ -82,6 +82,12 @@ public class Extractor {
         return usernames.stream().map(username -> baseUrl + username).collect(Collectors.toList());
     }
 
+    public static String extractFirstVideoLinkFromProfile(WebDriver driver, WebDriverWait wait, String profileUrl) {
+        driver.get(profileUrl);
+        WebElement firstVideoLinkElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(@href, '/video/')]")));
+        return firstVideoLinkElement.getAttribute("href");
+    }
+
     private static String convertToNumber(String text) {
         if (text.contains("K")) {
             double number = Double.parseDouble(text.replace("K", "").replace(",", "").trim()) * 1000;

@@ -42,6 +42,7 @@ public class TiktokScraperSelenium {
             int saveCount = Extractor.extractVideoSaveCount(wait);
             commentProfileUrls = Extractor.generateTiktokProfileLinks(Extractor.extractUsernames(wait));
             String profileUrl = Extractor.extractProfileLink(wait);
+            String videoUrl = Extractor.extractFirstVideoLinkFromProfile(driver, wait, profileUrl);
 
             video1.setSoundPath(Downloader.downloadTikTokVideo("src/main/resources/", driver));
 
@@ -50,7 +51,7 @@ public class TiktokScraperSelenium {
             users.add(user1);
             videos.add(video1);
 
-            printResults(username, videoId, shareCount, likeCount, uploadDate, commentCount, saveCount, profileUrl, user1);
+            printResults(username, videoId, shareCount, likeCount, uploadDate, commentCount, saveCount, profileUrl, user1, videoUrl);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -104,7 +105,7 @@ public class TiktokScraperSelenium {
         }
     }
 
-    private static void printResults(String username, String videoId, int shareCount, int likeCount, String uploadDate, int commentCount, int saveCount, String profileUrl, User user1) {
+    private static void printResults(String username, String videoId, int shareCount, int likeCount, String uploadDate, int commentCount, int saveCount, String profileUrl, User user1, String videoUrl) {
         System.out.println("Publisher's username: " + username);
         System.out.println("Video ID: " + videoId);
         System.out.println("Share count: " + shareCount);
@@ -115,6 +116,7 @@ public class TiktokScraperSelenium {
         System.out.println("Profile URL: " + profileUrl);
         System.out.println("Follower Count: " + user1.getFollowerCount());
         System.out.println("Following Count: " + user1.getFollowingCount());
+        System.out.println("Video URL: " + videoUrl);
         commentProfileUrls.forEach(System.out::println);
     }
 }
