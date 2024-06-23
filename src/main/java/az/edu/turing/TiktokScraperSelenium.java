@@ -5,6 +5,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.sql.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,6 +22,7 @@ public class TiktokScraperSelenium {
     private static List<User> users = new ArrayList<>();
     private static List<Video> videos = new ArrayList<>();
     public static Set<String> VIDEO_URL = new HashSet<>();
+    public static JdbcConnect jdbcConnect = new JdbcConnect();
     //private static List<String> commentProfileUrls;
     private static ExecutorService executor = Executors.newFixedThreadPool(10);
 
@@ -105,6 +107,7 @@ public class TiktokScraperSelenium {
             Set<String> videoUrls = Extractor.extractVideoUrls(wait);
             String profileUrl = Extractor.extractProfileLink(wait);
 
+
             for (String url : videoUrls) {
                 if (!Util.videoUrls.contains(url) && !Util.users.contains(user1) && !Util.videos.contains(video1)) {
 
@@ -115,7 +118,37 @@ public class TiktokScraperSelenium {
                     Util.users.add(user1);
                     Util.videos.add(video1);
 
-                    System.out.println(Util.users.size());
+                   try (
+                       Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5433/postgres", "postgres", "postgres");
+
+
+                           PreparedStatement preparedStatement = conn.prepareStatement("INSERT INTO video (shareDate, shareCount, likeCount, commentsCount, saveCount, soundPath, user_id) values ( ?, ?, ?, ?, ?, ?, ?);",
+                           Statement.RETURN_GENERATED_KEYS);){
+                          preparedStatement.setString(1, uploadDate);
+                            preparedStatement.setInt(2, shareCount);
+                            preparedStatement.setInt(3, likeCount);
+                            preparedStatement.setInt(4, commentCount);
+                            preparedStatement.setInt(5, saveCount);
+                            preparedStatement.setString(6, video1.getSoundPath());
+                            preparedStatement.setLong(7, user1.getUserId());
+                            preparedStatement.executeUpdate();
+
+                     } catch (Exception e) {
+                         e.printStackTrace();
+                     }
+                       try(  Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5433/postgres", "postgres", "postgres");
+                               PreparedStatement preparedStatement = conn.prepareStatement("INSERT INTO userProfile (followerCount, postCount, followingCount, profileUrl)VALUES (?,?,?,?);")){
+                           preparedStatement.setInt(1, user1.getFollowerCount());
+                           preparedStatement.setInt(2, user1.getPostCount());
+                           preparedStatement.setInt(3, user1.getFollowingCount());
+                           preparedStatement.setString(4, user1.getProfileUrl());
+                           preparedStatement.executeUpdate();
+                       } catch (Exception e) {
+                           e.printStackTrace();
+
+                       }
+
+
                     System.out.println(Util.videos.size());
                     runAll(url, wait, driver);
                 }
